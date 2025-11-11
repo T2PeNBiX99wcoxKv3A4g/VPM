@@ -1,20 +1,21 @@
 {
-    "name":"yukiyosanako's VPM Repository",
-    "id":"io.github.ykysnk.vpm",
-    "url":"https://t2penbix99wcoxkv3a4g.github.io/VPM/index.json",
-    "author":{
-        "email":"github.qszdy@aleeas.com",
-        "name":"yukiyosanako / ゆきよさなこ",
-        "url":"https://github.com/T2PeNBiX99wcoxKv3A4g"
-    },
-    "description":"yukiyosanako's VPM packages",
-    "infoLink":{
-        "url":"https://t2penbix99wcoxkv3a4g.github.io/VPM",
-        "text":"View on GitHub"
-    },
-    "bannerUrl":"banner.png",
-    "githubRepos":[
-        "T2PeNBiX99wcoxKv3A4g/VPM.AssetBackup"
-    ],
-    "packages":[]
+  "name": "yukiyosanako's VPM Repository",
+  "id": "io.github.ykysnk.vpm",
+  "url": "https://t2penbix99wcoxkv3a4g.github.io/VPM/index.json",
+  "author": {
+    "email": "github.qszdy@aleeas.com",
+    "name": "yukiyosanako / ゆきよさなこ",
+    "url": "https://github.com/T2PeNBiX99wcoxKv3A4g"
+  },
+  "description": "yukiyosanako's VPM packages",
+  "infoLink": {
+    "url": "https://t2penbix99wcoxkv3a4g.github.io/VPM",
+    "text": "View on GitHub"
+  },
+  "bannerUrl": "banner.png",
+  "githubRepos": [
+    "T2PeNBiX99wcoxKv3A4g/VPM.AssetBackup",
+    "T2PeNBiX99wcoxKv3A4g/VPM.AutoHook"
+  ],
+  "packages": []
 }
