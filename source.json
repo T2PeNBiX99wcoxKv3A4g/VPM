@@ -16,7 +16,8 @@
   "githubRepos": [
     "T2PeNBiX99wcoxKv3A4g/VPM.AssetBackup",
     "T2PeNBiX99wcoxKv3A4g/VPM.AutoHook",
-    "T2PeNBiX99wcoxKv3A4g/VPM.ObjectAndTagChange"
+    "T2PeNBiX99wcoxKv3A4g/VPM.ObjectAndTagChange",
+    "T2PeNBiX99wcoxKv3A4g/VPM.Utils"
   ],
   "packages": []
 }
