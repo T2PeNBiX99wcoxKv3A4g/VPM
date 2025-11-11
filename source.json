@@ -1,28 +1,20 @@
 {
-    "name":"Example Listing",
-    "id":"com.vrchat.example-listing",
-    "url":"https://vrchat-community.github.io/template-package-listing/index.json",
+    "name":"yukiyosanako's VPM Repository",
+    "id":"io.github.ykysnk.vpm",
+    "url":"https://t2penbix99wcoxkv3a4g.github.io/VPM/index.json",
     "author":{
-        "email":"developer@vrchat.com",
-        "name":"VRChat",
-        "url":"https://hello.vrchat.com"
+        "email":"github.qszdy@aleeas.com",
+        "name":"yukiyosanako / ゆきよさなこ",
+        "url":"https://github.com/T2PeNBiX99wcoxKv3A4g"
     },
-    "description":"Example listing of VRChat packages",
+    "description":"yukiyosanako's VPM packages",
     "infoLink":{
-        "url":"http://github.com/vrchat-community/template-package-listing",
+        "url":"https://t2penbix99wcoxkv3a4g.github.io/VPM",
         "text":"View on GitHub"
     },
     "bannerUrl":"banner.png",
     "githubRepos":[
-        "vrchat-community/clientsim"
+        "T2PeNBiX99wcoxKv3A4g/VPM.AssetBackup"
     ],
-    "packages":[
-        {
-            "name":"com.vrchat.udonsharp",
-            "releases":[
-                "https://github.com/vrchat-community/UdonSharp/releases/download/1.1.7/com.vrchat.UdonSharp.zip",
-                "https://github.com/vrchat-community/UdonSharp/releases/download/1.1.6/com.vrchat.UdonSharp-1.1.6.zip"
-            ]
-        }
-    ]
+    "packages":[]
 }
