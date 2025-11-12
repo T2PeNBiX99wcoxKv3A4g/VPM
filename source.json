@@ -19,7 +19,8 @@
     "T2PeNBiX99wcoxKv3A4g/VPM.ObjectAndTagChange",
     "T2PeNBiX99wcoxKv3A4g/VPM.Utils",
     "T2PeNBiX99wcoxKv3A4g/VPM.ModularAvatarExtensions",
-    "T2PeNBiX99wcoxKv3A4g/VPM.ModularAvatarExtensions.D4rkAvatarOptimizerPatches"
+    "T2PeNBiX99wcoxKv3A4g/VPM.ModularAvatarExtensions.D4rkAvatarOptimizerPatches",
+    "T2PeNBiX99wcoxKv3A4g/VPM.VRCAvatarDescriptorForceMulitEditing"
   ],
   "packages": []
 }
