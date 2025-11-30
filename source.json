@@ -27,7 +27,8 @@
     "T2PeNBiX99wcoxKv3A4g/VPM.AudioManager",
     "T2PeNBiX99wcoxKv3A4g/VPM.WorldBasic",
     "T2PeNBiX99wcoxKv3A4g/VPM.WorldFluid",
-    "T2PeNBiX99wcoxKv3A4g/VPM.WorldSwitch"
+    "T2PeNBiX99wcoxKv3A4g/VPM.WorldSwitch",
+    "T2PeNBiX99wcoxKv3A4g/VPM.WorldBundle"
   ],
   "packages": []
 }
