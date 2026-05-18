@@ -4,27 +4,27 @@ const LISTING_URL = "{{ listingInfo.Url }}";
 
 const PACKAGES = {
 {{~ for package in packages ~}}
-  "{{ package.Name }}": {
-    name: "{{ package.Name }}",
-    displayName: "{{ package.DisplayName | html.escape }}",
-    description: "{{ package.Description | html.escape }}",
-    version: "{{ package.Version }}",
+  `{{ package.Name }}`: {
+    name: `{{ package.Name }}`,
+    displayName: `{{ package.DisplayName | html.escape }}`,
+    description: `{{ package.Description | html.escape }}`,
+    version: `{{ package.Version }}`,
     author: {
-      name: "{{ package.Author.Name | html.escape }}",
-      url: "{{ package.Author.Url | html.escape }}",
+      name: `{{ package.Author.Name | html.escape }}`,
+      url: `{{ package.Author.Url | html.escape }}`,
     },
     dependencies: {
       {{~ for dependency in package.Dependencies ~}}
-        "{{ dependency.Name }}": "{{ dependency.Version }}",
+        `{{ dependency.Name }}`: `{{ dependency.Version }}`,
       {{~ end ~}}
     },
     keywords: [
       {{~ for keyword in package.Keywords ~}}
-        "{{ keyword | html.escape }}",
+        `{{ keyword | html.escape }}`,
       {{~ end ~}}
     ],
-    license: "{{ package.License | html.escape }}",
-    licensesUrl: "{{ package.LicensesUrl | html.escape }}",
+    license: `{{ package.License | html.escape }}`,
+    licensesUrl: `{{ package.LicensesUrl | html.escape }}`,
   },
 {{~ end ~}}
 };
