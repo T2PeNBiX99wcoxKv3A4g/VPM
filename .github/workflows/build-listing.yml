@@ -32,11 +32,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       
-      # Checkout Local Repository
+      # Check out Local Repository
       - name: Checkout Local Repository
         uses: actions/checkout@v6
 
-      # Checkout Automation Repository without removing prior checkouts
+      # Check out Automation Repository without removing prior checkouts
       - name: Checkout Automation Repository
         uses: actions/checkout@v6
         with:
