@@ -4,7 +4,7 @@ const LISTING_URL = "{{ listingInfo.Url }}";
 
 const PACKAGES = {
 {{~ for package in packages ~}}
-  `{{ package.Name }}`: {
+  [`{{ package.Name }}`]: {
     name: `{{ package.Name }}`,
     displayName: `{{ package.DisplayName | html.escape }}`,
     description: `{{ package.Description | html.escape }}`,
@@ -15,7 +15,7 @@ const PACKAGES = {
     },
     dependencies: {
       {{~ for dependency in package.Dependencies ~}}
-        `{{ dependency.Name }}`: `{{ dependency.Version }}`,
+        [`{{ dependency.Name }}`]: `{{ dependency.Version }}`,
       {{~ end ~}}
     },
     keywords: [
