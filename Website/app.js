@@ -6,12 +6,12 @@ const PACKAGES = {
 {{~ for package in packages ~}}
   "{{ package.Name }}": {
     name: "{{ package.Name }}",
-    displayName: "{{ if package.DisplayName; package.DisplayName; end; }}",
-    description: "{{ if package.Description; package.Description; end; }}",
+    displayName: "{{ package.DisplayName | html.escape }}",
+    description: "{{ package.Description | html.escape }}",
     version: "{{ package.Version }}",
     author: {
-      name: "{{ if package.Author.Name; package.Author.Name; end; }}",
-      url: "{{ if package.Author.Url; package.Author.Url; end; }}",
+      name: "{{ package.Author.Name | html.escape }}",
+      url: "{{ package.Author.Url | html.escape }}",
     },
     dependencies: {
       {{~ for dependency in package.Dependencies ~}}
@@ -20,11 +20,11 @@ const PACKAGES = {
     },
     keywords: [
       {{~ for keyword in package.Keywords ~}}
-        "{{ keyword }}",
+        "{{ keyword | html.escape }}",
       {{~ end ~}}
     ],
-    license: "{{ package.License }}",
-    licensesUrl: "{{ package.LicensesUrl }}",
+    license: "{{ package.License | html.escape }}",
+    licensesUrl: "{{ package.LicensesUrl | html.escape }}",
   },
 {{~ end ~}}
 };
