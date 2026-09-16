@@ -29,17 +29,67 @@ const PACKAGES = {
 {{~ end ~}}
 };
 
-const setTheme = () => {
-  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const theme = isDark ? webDarkTheme : webLightTheme;
+/* ==========================================================================
+   Theme Management
+   ========================================================================== */
+
+const THEME_STORAGE_KEY = 'vpm_theme_preference';
+
+const getPreferredTheme = () => {
+  const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  if (storedTheme === 'dark' || storedTheme === 'light') {
+    return storedTheme;
+  }
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+};
+
+const applyTheme = (themeName) => {
+  const isLight = themeName === 'light';
+  document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
+
+  const themeTokens = isLight ? webLightTheme : webDarkTheme;
   if (window.Fluent?.setTheme) {
-    window.Fluent.setTheme(theme);
-  } else if (theme) {
-    for (const [key, value] of Object.entries(theme)) {
+    window.Fluent.setTheme(themeTokens);
+  } else if (themeTokens) {
+    for (const [key, value] of Object.entries(themeTokens)) {
       document.documentElement.style.setProperty(`--${key}`, value);
     }
   }
 };
+
+const toggleTheme = () => {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || getPreferredTheme();
+  const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+  localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  applyTheme(nextTheme);
+  showToast(`Switched to ${nextTheme} theme`);
+};
+
+/* ==========================================================================
+   Toast Notification System
+   ========================================================================== */
+
+let toastTimeout = null;
+
+const showToast = (message = 'Copied to clipboard!') => {
+  const toast = document.getElementById('toastNotification');
+  const toastMessage = document.getElementById('toastMessage');
+  if (!toast || !toastMessage) return;
+
+  toastMessage.textContent = message;
+  toast.removeAttribute('hidden');
+  toast.hidden = false;
+
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.setAttribute('hidden', '');
+    toast.hidden = true;
+  }, 2200);
+};
+
+/* ==========================================================================
+   Dialog / Modal Helpers
+   ========================================================================== */
 
 const showDialog = (dialog) => {
   if (!dialog) return;
@@ -48,6 +98,7 @@ const showDialog = (dialog) => {
   if (typeof dialog.show === 'function') {
     dialog.show();
   }
+  document.body.style.overflow = 'hidden';
 };
 
 const hideDialog = (dialog) => {
@@ -57,84 +108,237 @@ const hideDialog = (dialog) => {
   }
   dialog.setAttribute('hidden', '');
   dialog.hidden = true;
+
+  const anyOpen = document.querySelectorAll('fluent-dialog:not([hidden])').length > 0;
+  if (!anyOpen) {
+    document.body.style.overflow = '';
+  }
 };
 
-const copyToClipboard = (inputElement, buttonElement) => {
-  if (!inputElement) return;
-  const innerInput = inputElement.shadowRoot?.querySelector('input') || inputElement;
-  const value = inputElement.value || innerInput.value || inputElement.getAttribute('value') || '';
-  if (typeof innerInput.select === 'function') {
-    try {
-      innerInput.select();
-    } catch (_) {}
+/* ==========================================================================
+   Clipboard Copy Helper
+   ========================================================================== */
+
+const copyToClipboard = (textOrElement, buttonElement, successMsg = 'Copied to clipboard!') => {
+  let value = '';
+  if (typeof textOrElement === 'string') {
+    value = textOrElement;
+  } else if (textOrElement) {
+    const innerInput = textOrElement.shadowRoot?.querySelector('input') || textOrElement;
+    value = textOrElement.value || innerInput.value || textOrElement.getAttribute('value') || textOrElement.textContent || '';
+    if (typeof innerInput.select === 'function') {
+      try {
+        innerInput.select();
+      } catch (_) {}
+    }
   }
-  navigator.clipboard.writeText(value);
+
+  if (!value) return;
+
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(value).then(() => {
+      showToast(successMsg);
+    }).catch(() => {
+      fallbackCopy(value, successMsg);
+    });
+  } else {
+    fallbackCopy(value, successMsg);
+  }
+
   if (buttonElement) {
-    const originalAppearance = buttonElement.getAttribute('appearance') || 'outline';
-    buttonElement.setAttribute('appearance', 'primary');
+    const copyTextSpan = buttonElement.querySelector('.btn-copy-text');
+    const originalHtml = copyTextSpan ? copyTextSpan.textContent : null;
+    if (copyTextSpan) copyTextSpan.textContent = 'Copied!';
+    buttonElement.classList.add('btn-copied');
+
     setTimeout(() => {
-      buttonElement.setAttribute('appearance', originalAppearance);
-    }, 1000);
+      if (copyTextSpan && originalHtml) copyTextSpan.textContent = originalHtml;
+      buttonElement.classList.remove('btn-copied');
+    }, 1500);
   }
 };
+
+const fallbackCopy = (text, successMsg) => {
+  try {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    showToast(successMsg);
+  } catch (err) {
+    console.error('Failed to copy', err);
+  }
+};
+
+/* ==========================================================================
+   Application Initialization
+   ========================================================================== */
 
 (() => {
-  setTheme();
+  // 1. Initialize Theme
+  const initialTheme = getPreferredTheme();
+  applyTheme(initialTheme);
 
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    setTheme();
-  });
-
-  const packageGrid = document.getElementById('packageGrid');
-
-  // Search input filtering for package rows
-  const searchInput = document.getElementById('searchInput');
-  if (searchInput && packageGrid) {
-    const filterHandler = (event) => {
-      const target = event?.target;
-      const value = (target?.value || target?.currentValue || searchInput.value || '').trim().toLowerCase();
-      const items = packageGrid.querySelectorAll('fluent-data-grid-row:not([row-type="header"])');
-      items.forEach(item => {
-        if (value === '') {
-          item.style.display = '';
-          return;
-        }
-        const packageName = item.dataset?.packageName?.toLowerCase() || '';
-        const packageId = item.dataset?.packageId?.toLowerCase() || '';
-        if (packageName.includes(value) || packageId.includes(value)) {
-          item.style.display = '';
-        } else {
-          item.style.display = 'none';
-        }
-      });
-    };
-    searchInput.addEventListener('input', filterHandler);
-    searchInput.addEventListener('change', filterHandler);
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', toggleTheme);
   }
 
-  // Help dialog handlers
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (!localStorage.getItem(THEME_STORAGE_KEY)) {
+      applyTheme(getPreferredTheme());
+    }
+  });
+
+  // 2. Package Count & Search Filter
+  const packageGrid = document.getElementById('packageGrid');
+  const searchInput = document.getElementById('searchInput');
+  const searchClearBtn = document.getElementById('searchClearBtn');
+  const searchKbdTip = document.getElementById('searchKbdTip');
+  const packageCountBadge = document.getElementById('packageCountBadge');
+  const noResultsState = document.getElementById('noResultsState');
+  const resetSearchBtn = document.getElementById('resetSearchBtn');
+
+  const getPackageRows = () => {
+    if (!packageGrid) return [];
+    return Array.from(packageGrid.querySelectorAll('fluent-data-grid-row:not([row-type="header"]), .package-card-row'));
+  };
+
+  const updatePackageCount = (visibleCount, totalCount) => {
+    if (!packageCountBadge) return;
+    if (visibleCount === totalCount) {
+      packageCountBadge.textContent = `${totalCount} ${totalCount === 1 ? 'package' : 'packages'}`;
+    } else {
+      packageCountBadge.textContent = `${visibleCount} of ${totalCount} packages`;
+    }
+  };
+
+  const initialRows = getPackageRows();
+  const totalPackages = initialRows.length;
+  updatePackageCount(totalPackages, totalPackages);
+
+  const filterPackages = (query) => {
+    const term = (query || '').trim().toLowerCase();
+    const rows = getPackageRows();
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      if (!term) {
+        row.style.display = '';
+        visibleCount++;
+        return;
+      }
+
+      const pkgName = (row.dataset?.packageName || '').toLowerCase();
+      const pkgId = (row.dataset?.packageId || '').toLowerCase();
+      const pkgDesc = (row.dataset?.packageDesc || '').toLowerCase();
+      const pkgType = (row.dataset?.packageType || '').toLowerCase();
+
+      const matched = pkgName.includes(term) || pkgId.includes(term) || pkgDesc.includes(term) || pkgType.includes(term);
+      if (matched) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    if (noResultsState) {
+      if (visibleCount === 0 && totalPackages > 0) {
+        noResultsState.removeAttribute('hidden');
+        noResultsState.hidden = false;
+      } else {
+        noResultsState.setAttribute('hidden', '');
+        noResultsState.hidden = true;
+      }
+    }
+
+    if (searchClearBtn) {
+      if (term.length > 0) {
+        searchClearBtn.removeAttribute('hidden');
+        searchClearBtn.hidden = false;
+        if (searchKbdTip) searchKbdTip.style.display = 'none';
+      } else {
+        searchClearBtn.setAttribute('hidden', '');
+        searchClearBtn.hidden = true;
+        if (searchKbdTip) searchKbdTip.style.display = '';
+      }
+    }
+
+    updatePackageCount(visibleCount, totalPackages);
+  };
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => filterPackages(e.target.value));
+    searchInput.addEventListener('change', (e) => filterPackages(e.target.value));
+  }
+
+  if (searchClearBtn && searchInput) {
+    searchClearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      filterPackages('');
+      searchInput.focus();
+    });
+  }
+
+  if (resetSearchBtn && searchInput) {
+    resetSearchBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      filterPackages('');
+      searchInput.focus();
+    });
+  }
+
+  // Keyboard shortcut '/' to search
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== searchInput && !['input', 'textarea'].includes(document.activeElement?.tagName?.toLowerCase())) {
+      e.preventDefault();
+      searchInput?.focus();
+      searchInput?.select();
+    } else if (e.key === 'Escape') {
+      const openDialogs = document.querySelectorAll('fluent-dialog:not([hidden])');
+      openDialogs.forEach(dialog => hideDialog(dialog));
+      if (searchInput && document.activeElement === searchInput && searchInput.value) {
+        searchInput.value = '';
+        filterPackages('');
+      }
+    }
+  });
+
+  // 3. Quick Copy ID Buttons on Package Cards
+  document.querySelectorAll('.copy-id-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const copyText = btn.dataset?.copyText;
+      if (copyText) {
+        copyToClipboard(copyText, null, `Copied ID: ${copyText}`);
+      }
+    });
+  });
+
+  // 4. Help Dialog Modals
   const urlBarHelpButton = document.getElementById('urlBarHelp');
   const addListingToVccHelp = document.getElementById('addListingToVccHelp');
   const addListingToVccHelpClose = document.getElementById('addListingToVccHelpClose');
 
   if (urlBarHelpButton && addListingToVccHelp) {
-    urlBarHelpButton.addEventListener('click', () => {
-      showDialog(addListingToVccHelp);
-    });
+    urlBarHelpButton.addEventListener('click', () => showDialog(addListingToVccHelp));
   }
 
   if (addListingToVccHelpClose && addListingToVccHelp) {
-    addListingToVccHelpClose.addEventListener('click', () => {
-      hideDialog(addListingToVccHelp);
-    });
+    addListingToVccHelpClose.addEventListener('click', () => hideDialog(addListingToVccHelp));
   }
 
-  // Copy buttons for Listing URLs
+  // 5. Copy Buttons for Listing URLs
   const vccListingInfoUrlFieldCopy = document.getElementById('vccListingInfoUrlFieldCopy');
   const vccListingInfoUrlField = document.getElementById('vccListingInfoUrlField');
   if (vccListingInfoUrlFieldCopy && vccListingInfoUrlField) {
     vccListingInfoUrlFieldCopy.addEventListener('click', () => {
-      copyToClipboard(vccListingInfoUrlField, vccListingInfoUrlFieldCopy);
+      copyToClipboard(vccListingInfoUrlField, vccListingInfoUrlFieldCopy, 'Repository URL copied!');
     });
   }
 
@@ -142,7 +346,7 @@ const copyToClipboard = (inputElement, buttonElement) => {
   const vccUrlField = document.getElementById('vccUrlField');
   if (vccUrlFieldCopy && vccUrlField) {
     vccUrlFieldCopy.addEventListener('click', () => {
-      copyToClipboard(vccUrlField, vccUrlFieldCopy);
+      copyToClipboard(vccUrlField, vccUrlFieldCopy, 'Repository URL copied!');
     });
   }
 
@@ -150,26 +354,36 @@ const copyToClipboard = (inputElement, buttonElement) => {
   const packageInfoVccUrlField = document.getElementById('packageInfoVccUrlField');
   if (packageInfoVccUrlFieldCopy && packageInfoVccUrlField) {
     packageInfoVccUrlFieldCopy.addEventListener('click', () => {
-      copyToClipboard(packageInfoVccUrlField, packageInfoVccUrlFieldCopy);
+      copyToClipboard(packageInfoVccUrlField, packageInfoVccUrlFieldCopy, 'Repository URL copied!');
     });
   }
 
-  // VCC deep link buttons
+  // 6. VCC Deep Link Handlers
+  const addRepoToVcc = () => {
+    const url = LISTING_URL || vccUrlField?.value;
+    if (url) {
+      window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(url)}`);
+    }
+  };
+
   const vccAddRepoButton = document.getElementById('vccAddRepoButton');
   if (vccAddRepoButton) {
-    vccAddRepoButton.addEventListener('click', () => {
-      window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`);
-    });
+    vccAddRepoButton.addEventListener('click', addRepoToVcc);
   }
+
+  document.querySelectorAll('.modalAddRepoTrigger').forEach(btn => {
+    btn.addEventListener('click', addRepoToVcc);
+  });
 
   const rowAddToVccButtons = document.querySelectorAll('.rowAddToVccButton');
   rowAddToVccButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`);
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      addRepoToVcc();
     });
   });
 
-  // Row context menu for download
+  // 7. Context Menu for Download (Compatibility)
   const rowMoreMenu = document.getElementById('rowMoreMenu');
   let currentDownloadUrl = null;
 
@@ -188,7 +402,7 @@ const copyToClipboard = (inputElement, buttonElement) => {
       const targetButton = e.currentTarget || e.target.closest('.rowMenuButton');
       currentDownloadUrl = targetButton?.dataset?.packageUrl;
 
-      if (rowMoreMenu) {
+      if (rowMoreMenu && currentDownloadUrl) {
         const rect = targetButton.getBoundingClientRect();
         rowMoreMenu.style.top = `${rect.bottom + window.scrollY + 4}px`;
         rowMoreMenu.style.left = `${rect.right + window.scrollX - 160}px`;
@@ -217,19 +431,22 @@ const copyToClipboard = (inputElement, buttonElement) => {
     });
   }
 
-  // Package Info Modal setup
+  // 8. Package Info Modal Setup
   const packageInfoModal = document.getElementById('packageInfoModal');
   const packageInfoModalClose = document.getElementById('packageInfoModalClose');
 
   if (packageInfoModalClose && packageInfoModal) {
-    packageInfoModalClose.addEventListener('click', () => {
-      hideDialog(packageInfoModal);
-    });
+    packageInfoModalClose.addEventListener('click', () => hideDialog(packageInfoModal));
   }
 
-  // Manage dialog toggle event for light dismissal
+  // Dialog backdrop dismiss handling
   [addListingToVccHelp, packageInfoModal].forEach(dialog => {
     if (!dialog) return;
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) {
+        hideDialog(dialog);
+      }
+    });
     dialog.addEventListener('toggle', (e) => {
       if (e.newState === 'closed') {
         dialog.setAttribute('hidden', '');
@@ -244,62 +461,76 @@ const copyToClipboard = (inputElement, buttonElement) => {
   const packageInfoDescription = document.getElementById('packageInfoDescription');
   const packageInfoAuthor = document.getElementById('packageInfoAuthor');
   const packageInfoDependencies = document.getElementById('packageInfoDependencies');
+  const packageInfoDependenciesContainer = document.getElementById('packageInfoDependenciesContainer');
   const packageInfoKeywords = document.getElementById('packageInfoKeywords');
+  const packageInfoKeywordsContainer = document.getElementById('packageInfoKeywordsContainer');
   const packageInfoLicense = document.getElementById('packageInfoLicense');
+  const packageInfoLicenseContainer = document.getElementById('packageInfoLicenseContainer');
 
   const rowPackageInfoButtons = document.querySelectorAll('.rowPackageInfoButton');
   rowPackageInfoButtons.forEach((button) => {
     button.addEventListener('click', (e) => {
+      e.stopPropagation();
       const targetButton = e.currentTarget || e.target.closest('.rowPackageInfoButton');
       const packageId = targetButton?.dataset?.packageId;
       const packageInfo = PACKAGES?.[packageId];
+
       if (!packageInfo) {
-        console.error(`Did not find package ${packageId}. Packages available:`, PACKAGES);
+        console.warn(`Package info for '${packageId}' not found in PACKAGES map.`, PACKAGES);
         return;
       }
 
-      if (packageInfoName) packageInfoName.textContent = packageInfo.displayName;
+      if (packageInfoName) packageInfoName.textContent = packageInfo.displayName || packageInfo.name || packageId;
       if (packageInfoId) packageInfoId.textContent = packageId;
-      if (packageInfoVersion) packageInfoVersion.textContent = `v${packageInfo.version}`;
-      if (packageInfoDescription) packageInfoDescription.textContent = packageInfo.description;
+      if (packageInfoVersion) packageInfoVersion.textContent = packageInfo.version ? `v${packageInfo.version}` : '';
+      if (packageInfoDescription) packageInfoDescription.textContent = packageInfo.description || 'No description provided.';
+
       if (packageInfoAuthor) {
-        packageInfoAuthor.textContent = packageInfo.author?.name || '';
+        packageInfoAuthor.textContent = packageInfo.author?.name || 'Unknown Author';
         packageInfoAuthor.href = packageInfo.author?.url || '#';
       }
 
-      if (packageInfoKeywords) {
-        if ((packageInfo.keywords?.length ?? 0) === 0) {
-          packageInfoKeywords.parentElement.classList.add('hidden');
+      if (packageInfoKeywords && packageInfoKeywordsContainer) {
+        const keywords = packageInfo.keywords || [];
+        if (keywords.length === 0) {
+          packageInfoKeywordsContainer.style.display = 'none';
         } else {
-          packageInfoKeywords.parentElement.classList.remove('hidden');
+          packageInfoKeywordsContainer.style.display = '';
           packageInfoKeywords.innerHTML = '';
-          packageInfo.keywords.forEach(keyword => {
-            const keywordDiv = document.createElement('div');
-            keywordDiv.classList.add('me-2', 'mb-2', 'badge');
-            keywordDiv.textContent = keyword;
-            packageInfoKeywords.appendChild(keywordDiv);
+          keywords.forEach(keyword => {
+            const keywordBadge = document.createElement('span');
+            keywordBadge.className = 'badge';
+            keywordBadge.textContent = keyword;
+            packageInfoKeywords.appendChild(keywordBadge);
           });
         }
       }
 
-      if (packageInfoLicense) {
-        if (!packageInfo.license?.length && !packageInfo.licensesUrl?.length) {
-          packageInfoLicense.parentElement.classList.add('hidden');
+      if (packageInfoLicense && packageInfoLicenseContainer) {
+        const license = packageInfo.license;
+        const licenseUrl = packageInfo.licensesUrl;
+        if (!license && !licenseUrl) {
+          packageInfoLicenseContainer.style.display = 'none';
         } else {
-          packageInfoLicense.parentElement.classList.remove('hidden');
-          packageInfoLicense.textContent = packageInfo.license || 'See License';
-          packageInfoLicense.href = packageInfo.licensesUrl || '#';
+          packageInfoLicenseContainer.style.display = '';
+          packageInfoLicense.textContent = license || 'License';
+          packageInfoLicense.href = licenseUrl || '#';
         }
       }
 
-      if (packageInfoDependencies) {
-        packageInfoDependencies.innerHTML = '';
-        Object.entries(packageInfo.dependencies || {}).forEach(([name, version]) => {
-          const depRow = document.createElement('li');
-          depRow.classList.add('mb-2');
-          depRow.textContent = `${name} @ v${version}`;
-          packageInfoDependencies.appendChild(depRow);
-        });
+      if (packageInfoDependencies && packageInfoDependenciesContainer) {
+        const depEntries = Object.entries(packageInfo.dependencies || {});
+        if (depEntries.length === 0) {
+          packageInfoDependenciesContainer.style.display = 'none';
+        } else {
+          packageInfoDependenciesContainer.style.display = '';
+          packageInfoDependencies.innerHTML = '';
+          depEntries.forEach(([name, version]) => {
+            const depRow = document.createElement('li');
+            depRow.textContent = `${name} @ v${version}`;
+            packageInfoDependencies.appendChild(depRow);
+          });
+        }
       }
 
       if (packageInfoModal) {
