@@ -1,4 +1,4 @@
-import { baseLayerLuminance, StandardLuminance } from 'https://unpkg.com/@fluentui/web-components';
+import { webLightTheme, webDarkTheme } from 'https://esm.sh/@fluentui/tokens';
 
 const LISTING_URL = "{{ listingInfo.Url }}";
 
@@ -30,18 +30,44 @@ const PACKAGES = {
 };
 
 const setTheme = () => {
-  const isDarkTheme = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
-  if (isDarkTheme()) {
-    baseLayerLuminance.setValueFor(document.documentElement, StandardLuminance.DarkMode);
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = isDark ? webDarkTheme : webLightTheme;
+  if (window.Fluent?.setTheme) {
+    window.Fluent.setTheme(theme);
+  } else if (theme) {
+    for (const [key, value] of Object.entries(theme)) {
+      document.documentElement.style.setProperty(`--${key}`, value);
+    }
+  }
+};
+
+const showDialog = (dialog) => {
+  if (!dialog) return;
+  if (typeof dialog.show === 'function') {
+    dialog.show();
   } else {
-    baseLayerLuminance.setValueFor(document.documentElement, StandardLuminance.LightMode);
+    dialog.hidden = false;
+  }
+};
+
+const hideDialog = (dialog) => {
+  if (!dialog) return;
+  if (typeof dialog.hide === 'function') {
+    dialog.hide();
+  } else {
+    dialog.hidden = true;
   }
 };
 
 const copyToClipboard = (inputElement, buttonElement) => {
   if (!inputElement) return;
-  inputElement.select();
-  navigator.clipboard.writeText(inputElement.value);
+  const value = inputElement.value || inputElement.getAttribute('value') || '';
+  if (typeof inputElement.select === 'function') {
+    try {
+      inputElement.select();
+    } catch (_) {}
+  }
+  navigator.clipboard.writeText(value);
   if (buttonElement) {
     buttonElement.appearance = 'accent';
     setTimeout(() => {
@@ -88,13 +114,13 @@ const copyToClipboard = (inputElement, buttonElement) => {
 
   if (urlBarHelpButton && addListingToVccHelp) {
     urlBarHelpButton.addEventListener('click', () => {
-      addListingToVccHelp.hidden = false;
+      showDialog(addListingToVccHelp);
     });
   }
 
   if (addListingToVccHelpClose && addListingToVccHelp) {
     addListingToVccHelpClose.addEventListener('click', () => {
-      addListingToVccHelp.hidden = true;
+      hideDialog(addListingToVccHelp);
     });
   }
 
@@ -188,13 +214,13 @@ const copyToClipboard = (inputElement, buttonElement) => {
 
   if (packageInfoModalClose && packageInfoModal) {
     packageInfoModalClose.addEventListener('click', () => {
-      packageInfoModal.hidden = true;
+      hideDialog(packageInfoModal);
     });
   }
 
   const setupModalStyles = () => {
     if (!packageInfoModal) return;
-    const modalControl = packageInfoModal.shadowRoot?.querySelector('.control');
+    const modalControl = packageInfoModal.shadowRoot?.querySelector('.control') || packageInfoModal.shadowRoot?.querySelector('dialog');
     if (modalControl) {
       modalControl.style.maxHeight = '90%';
       modalControl.style.transition = 'height 0.2s ease-in-out';
@@ -274,10 +300,10 @@ const copyToClipboard = (inputElement, buttonElement) => {
 
       if (packageInfoModal) {
         setupModalStyles();
-        packageInfoModal.hidden = false;
+        showDialog(packageInfoModal);
 
         setTimeout(() => {
-          const modalControl = packageInfoModal.shadowRoot?.querySelector('.control');
+          const modalControl = packageInfoModal.shadowRoot?.querySelector('.control') || packageInfoModal.shadowRoot?.querySelector('dialog');
           const contentCol = packageInfoModal.querySelector('.col');
           if (modalControl && contentCol) {
             const height = contentCol.clientHeight;
@@ -291,7 +317,7 @@ const copyToClipboard = (inputElement, buttonElement) => {
   const packageInfoListingHelp = document.getElementById('packageInfoListingHelp');
   if (packageInfoListingHelp && addListingToVccHelp) {
     packageInfoListingHelp.addEventListener('click', () => {
-      addListingToVccHelp.hidden = false;
+      showDialog(addListingToVccHelp);
     });
   }
 })();

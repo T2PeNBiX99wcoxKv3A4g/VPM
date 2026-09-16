@@ -14,8 +14,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: var(--neutral-foreground-rest);
+  font-family: var(--fontFamilyBase, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+  color: var(--colorNeutralForeground1, var(--neutral-foreground-rest));
+  background-color: var(--colorNeutralBackground1, #ffffff);
 }
 
 .hidden {
@@ -56,13 +57,13 @@ h1 {
 
 .caption1 {
   font-size: 1rem;
-  color: var(--neutral-foreground-hover);
+  color: var(--colorNeutralForeground2, var(--neutral-foreground-hover, #616161));
 }
 
 .caption2 {
   font-size: 0.8rem;
   margin-top: 0.25rem;
-  color: var(--neutral-foreground-rest);
+  color: var(--colorNeutralForeground3, var(--neutral-foreground-rest, #707070));
 }
 
 .packages {
@@ -71,12 +72,35 @@ h1 {
   padding: 0.25rem;
   display: flex;
   flex: 1;
+  background-color: var(--colorNeutralBackground1, #ffffff);
+  border-radius: var(--borderRadiusMedium, 8px);
+  border: 1px solid var(--colorNeutralStroke2, rgba(0, 0, 0, 0.1));
 }
 
 #packageGrid {
   overflow-y: auto;
   width: 100%;
   max-height: 40rem;
+  display: flex;
+  flex-direction: column;
+}
+
+fluent-data-grid-row {
+  display: grid;
+  grid-template-columns: 1fr 100px 220px;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--colorNeutralStroke2, rgba(0, 0, 0, 0.08));
+}
+
+fluent-data-grid-row[row-type="header"] {
+  font-weight: 600;
+  border-bottom: 2px solid var(--colorNeutralStroke1, rgba(0, 0, 0, 0.15));
+}
+
+fluent-data-grid-cell {
+  display: flex;
+  align-items: center;
 }
 
 .packages .packageName {
@@ -123,7 +147,7 @@ h1 {
 #rowMoreMenu a {
   display: block;
   text-decoration: none;
-  color: var(--neutral-foreground-rest);
+  color: var(--colorNeutralForeground1, var(--neutral-foreground-rest, inherit));
 }
 
 .bannerImage {
@@ -140,7 +164,8 @@ h1 {
 .badge {
   border-radius: 4px;
   padding: 0.25rem 0.5rem;
-  background-color: var(--neutral-fill-hover);
+  background-color: var(--colorNeutralBackground3, var(--neutral-fill-hover, rgba(0, 0, 0, 0.06)));
+  color: var(--colorNeutralForeground1, inherit);
 }
 
 .m-0 {
