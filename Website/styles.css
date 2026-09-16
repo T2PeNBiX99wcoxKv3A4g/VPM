@@ -113,6 +113,8 @@ fluent-data-grid-cell {
   margin-top: 1rem;
   width: 100%;
   max-width: 90%;
+  display: flex;
+  justify-content: center;
 }
 
 fluent-text-input {
@@ -126,10 +128,13 @@ fluent-text-input {
 .addToVccBlock {
   max-width: 90%;
   width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .vccUrlField {
   min-width: 280px;
+  max-width: 90%;
   flex-grow: 1;
 }
 
