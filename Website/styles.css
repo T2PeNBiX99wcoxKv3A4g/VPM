@@ -128,7 +128,7 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  height: 550px;
+  height: 100%;
   background: var(--bg-glow);
   pointer-events: none;
   z-index: 0;
