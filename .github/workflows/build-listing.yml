@@ -34,11 +34,11 @@ jobs:
       
       # Check out Local Repository
       - name: Checkout Local Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Check out Automation Repository without removing prior checkouts
       - name: Checkout Automation Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: vrchat-community/package-list-action
           path: ${{ env.pathToCi }}
@@ -46,7 +46,7 @@ jobs:
 
       # Load cached data from previous runs
       - name: Restore Cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ${{ env.pathToCi }}/.nuke/temp
