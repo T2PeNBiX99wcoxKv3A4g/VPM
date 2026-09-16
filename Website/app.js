@@ -80,25 +80,21 @@ const showToast = (message = 'Copied to clipboard!') => {
    Dialog / Modal Helpers
    ========================================================================== */
 
-const showDialog = (dialog) => {
-  if (!dialog) return;
-  dialog.removeAttribute('hidden');
-  dialog.hidden = false;
-  if (typeof dialog.show === 'function') {
-    dialog.show();
-  }
+const showDialog = (modal) => {
+  if (!modal) return;
+  modal.removeAttribute('hidden');
+  modal.hidden = false;
+  modal.classList.remove('is-hidden');
   document.body.style.overflow = 'hidden';
 };
 
-const hideDialog = (dialog) => {
-  if (!dialog) return;
-  if (typeof dialog.hide === 'function') {
-    dialog.hide();
-  }
-  dialog.setAttribute('hidden', '');
-  dialog.hidden = true;
+const hideDialog = (modal) => {
+  if (!modal) return;
+  modal.setAttribute('hidden', '');
+  modal.hidden = true;
+  modal.classList.add('is-hidden');
 
-  const anyOpen = document.querySelectorAll('fluent-dialog:not([hidden])').length > 0;
+  const anyOpen = document.querySelectorAll('.modal-overlay:not([hidden])').length > 0;
   if (!anyOpen) {
     document.body.style.overflow = '';
   }
@@ -298,7 +294,7 @@ const fallbackCopy = (text, successMsg) => {
       searchInput?.focus();
       searchInput?.select();
     } else if (e.key === 'Escape') {
-      const openDialogs = document.querySelectorAll('fluent-dialog:not([hidden])');
+      const openDialogs = document.querySelectorAll('.modal-overlay:not([hidden])');
       openDialogs.forEach(dialog => hideDialog(dialog));
       if (searchInput && document.activeElement === searchInput && searchInput.value) {
         searchInput.value = '';
@@ -437,18 +433,12 @@ const fallbackCopy = (text, successMsg) => {
     packageInfoModalClose.addEventListener('click', () => hideDialog(packageInfoModal));
   }
 
-  // Dialog backdrop dismiss handling
-  [addListingToVccHelp, packageInfoModal].forEach(dialog => {
-    if (!dialog) return;
-    dialog.addEventListener('click', (e) => {
-      if (e.target === dialog) {
-        hideDialog(dialog);
-      }
-    });
-    dialog.addEventListener('toggle', (e) => {
-      if (e.newState === 'closed') {
-        dialog.setAttribute('hidden', '');
-        dialog.hidden = true;
+  // Modal backdrop dismiss handling
+  [addListingToVccHelp, packageInfoModal].forEach(modal => {
+    if (!modal) return;
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        hideDialog(modal);
       }
     });
   });

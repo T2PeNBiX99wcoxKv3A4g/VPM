@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -78,13 +77,8 @@
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
             <span>Published by</span>
-            <a href="{{ listingInfo.Author.Url }}" target="_blank" rel="noopener noreferrer" class="author-name">{{ listingInfo.Author.Name }}</a>
+            <a href="{{ listingInfo.Author.Url }}" target="_blank" rel="noopener noreferrer" class="author-name" {{~ if listingInfo.Author.Email; ~}}title="{{ listingInfo.Author.Email }}"{{~ end; ~}}>{{ listingInfo.Author.Name }}</a>
           </div>
-          {{~ if listingInfo.Author.Email; ~}}
-          <fluent-tooltip id="publishedByTooltip" anchor="publishedByText">
-            {{ listingInfo.Author.Email }}
-          </fluent-tooltip>
-          {{~ end; ~}}
         </div>
       </div>
 
@@ -101,8 +95,6 @@
               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
             </svg>
             <input type="text" id="vccUrlField" class="vccUrlField custom-url-input" readonly value="{{ listingInfo.Url }}" aria-label="Listing URL">
-            <fluent-text-input aria-readonly="true" id="vccUrlFieldFluent" class="vccUrlField" readonly value="{{ listingInfo.Url }}" style="display: none;">
-            </fluent-text-input>
           </div>
           <div class="action-buttons">
             <button class="btn btn-primary btn-glow" id="vccAddRepoButton">
@@ -127,9 +119,6 @@
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
               </svg>
             </button>
-            <fluent-tooltip id="urlBarHelpTooltip" anchor="urlBarHelp">
-              How to add a listing to your VCC
-            </fluent-tooltip>
           </div>
         </div>
       </div>
@@ -159,84 +148,78 @@
       </div>
 
       <!-- Packages Grid / Cards -->
-      <fluent-card class="packages packages-card-wrapper">
-        <fluent-data-grid id="packageGrid" role="grid" grid-template-columns="1fr">
-          <fluent-data-grid-row row-type="header" style="display: none;">
-            <fluent-data-grid-cell cell-type="columnheader" grid-column="1">Packages</fluent-data-grid-cell>
-          </fluent-data-grid-row>
-
+      <div class="packages packages-card-wrapper">
+        <div id="packageGrid" class="package-grid">
           {{~ for package in packages ~}}
-          <fluent-data-grid-row class="package-card-row" data-package-name="{{ package.DisplayName }}" data-package-id="{{ package.Name }}" data-package-desc="{{ package.Description }}" data-package-type="{{ package.Type }}">
-            <fluent-data-grid-cell grid-column="1" class="package-cell">
-              <div class="pkg-card">
-                <div class="pkg-card-top">
-                  <div class="pkg-title-area">
-                    <div class="pkg-header-row">
-                      <h3 class="packageName pkg-display-name">{{ package.DisplayName }}</h3>
-                      <div class="pkg-badges">
-                        {{~ if package.Type ~}}
-                        <span class="badge badge-type badge-{{ package.Type | string.downcase }}">{{ package.Type }}</span>
-                        {{~ end ~}}
-                        {{~ if package.Version ~}}
-                        <span class="badge badge-version">v{{ package.Version }}</span>
-                        {{~ end ~}}
-                      </div>
-                    </div>
-                    <div class="caption2 pkg-id-row">
-                      <span class="pkg-id-text">{{ package.Name }}</span>
-                      <button class="copy-id-btn" data-copy-text="{{ package.Name }}" title="Copy Package ID">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                      </button>
+          <div class="package-card-row" data-package-name="{{ package.DisplayName }}" data-package-id="{{ package.Name }}" data-package-desc="{{ package.Description }}" data-package-type="{{ package.Type }}">
+            <div class="pkg-card">
+              <div class="pkg-card-top">
+                <div class="pkg-title-area">
+                  <div class="pkg-header-row">
+                    <h3 class="packageName pkg-display-name">{{ package.DisplayName }}</h3>
+                    <div class="pkg-badges">
+                      {{~ if package.Type ~}}
+                      <span class="badge badge-type badge-{{ package.Type | string.downcase }}">{{ package.Type }}</span>
+                      {{~ end ~}}
+                      {{~ if package.Version ~}}
+                      <span class="badge badge-version">v{{ package.Version }}</span>
+                      {{~ end ~}}
                     </div>
                   </div>
-                </div>
-
-                {{~ if package.Description ~}}
-                <p class="caption1 pkg-description">{{ package.Description }}</p>
-                {{~ end ~}}
-
-                <div class="pkg-card-actions">
-                  <button class="btn btn-sm btn-primary rowAddToVccButton" data-package-id="{{ package.Name }}">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    <span>Add to VCC</span>
-                  </button>
-                  <button class="btn btn-sm btn-secondary rowPackageInfoButton" data-package-id="{{ package.Name }}" title="View Package Details">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="16" x2="12" y2="12"></line>
-                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                    <span>Details</span>
-                  </button>
-                  {{~ if package.ZipUrl ~}}
-                  <a href="{{ package.ZipUrl }}" download class="btn btn-sm btn-outline pkg-download-btn" title="Download ZIP Archive">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="7 10 12 15 17 10"></polyline>
-                      <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    <span>Download</span>
-                  </a>
-                  {{~ end ~}}
-                  <button class="btn btn-icon btn-sm rowMenuButton" data-package-url="{{ package.ZipUrl }}" title="More options" style="display: none;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="12" r="2"></circle>
-                      <circle cx="19" cy="12" r="2"></circle>
-                      <circle cx="5" cy="12" r="2"></circle>
-                    </svg>
-                  </button>
+                  <div class="caption2 pkg-id-row">
+                    <span class="pkg-id-text">{{ package.Name }}</span>
+                    <button class="copy-id-btn" data-copy-text="{{ package.Name }}" title="Copy Package ID">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </fluent-data-grid-cell>
-          </fluent-data-grid-row>
+
+              {{~ if package.Description ~}}
+              <p class="caption1 pkg-description">{{ package.Description }}</p>
+              {{~ end ~}}
+
+              <div class="pkg-card-actions">
+                <button class="btn btn-sm btn-primary rowAddToVccButton" data-package-id="{{ package.Name }}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Add to VCC</span>
+                </button>
+                <button class="btn btn-sm btn-secondary rowPackageInfoButton" data-package-id="{{ package.Name }}" title="View Package Details">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <span>Details</span>
+                </button>
+                {{~ if package.ZipUrl ~}}
+                <a href="{{ package.ZipUrl }}" download class="btn btn-sm btn-outline pkg-download-btn" title="Download ZIP Archive">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Download</span>
+                </a>
+                {{~ end ~}}
+                <button class="btn btn-icon btn-sm rowMenuButton" data-package-url="{{ package.ZipUrl }}" title="More options" style="display: none;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="2"></circle>
+                    <circle cx="19" cy="12" r="2"></circle>
+                    <circle cx="5" cy="12" r="2"></circle>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
           {{~ end ~}}
-        </fluent-data-grid>
+        </div>
 
         <!-- Empty Search State -->
         <div id="noResultsState" class="empty-state" hidden>
@@ -251,7 +234,7 @@
           <p class="empty-desc">No packages matched your search query. Try searching with different keywords.</p>
           <button id="resetSearchBtn" class="btn btn-sm btn-secondary">Clear Search Filter</button>
         </div>
-      </fluent-card>
+      </div>
     </section>
 
     <!-- Footer -->
@@ -272,19 +255,19 @@
   </div>
 
   <!-- Row Context Menu for Download (Compatibility) -->
-  <fluent-menu-list id="rowMoreMenu" hidden>
-    <fluent-menu-item id="rowMoreMenuDownload">
-      <svg slot="start" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <div class="row-more-menu" id="rowMoreMenu" hidden>
+    <button class="menu-item-btn" id="rowMoreMenuDownload">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
         <polyline points="7 10 12 15 17 10"></polyline>
         <line x1="12" y1="15" x2="12" y2="3"></line>
       </svg>
-      <div>Download .ZIP</div>
-    </fluent-menu-item>
-  </fluent-menu-list>
+      <span>Download .ZIP</span>
+    </button>
+  </div>
 
   <!-- Help Dialog Modal -->
-  <fluent-dialog id="addListingToVccHelp" hidden>
+  <div class="modal-overlay" id="addListingToVccHelp" hidden>
     <div class="modal-dialog-content">
       <div class="modal-header">
         <div class="modal-title-wrap">
@@ -387,10 +370,10 @@
         </div>
       </div>
     </div>
-  </fluent-dialog>
+  </div>
 
   <!-- Package Info Modal -->
-  <fluent-dialog id="packageInfoModal" hidden>
+  <div class="modal-overlay" id="packageInfoModal" hidden>
     <div class="modal-dialog-content">
       <div class="modal-header">
         <div class="modal-title-wrap">
@@ -476,9 +459,6 @@
               </svg>
               <span>Installation Guide</span>
             </button>
-            <fluent-tooltip id="packageInfoListingTooltip" anchor="packageInfoListingHelp">
-              How to add a listing to your VCC
-            </fluent-tooltip>
           </div>
           <div class="modal-url-box">
             <div class="url-input-wrapper">
@@ -507,7 +487,7 @@
         </div>
       </div>
     </div>
-  </fluent-dialog>
+  </div>
 
   <!-- Toast Notification -->
   <div id="toastNotification" class="toast" role="status" aria-live="polite" hidden>
