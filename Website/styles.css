@@ -127,6 +127,8 @@ fluent-text-input {
 
 .addToVccBlock {
   max-width: 90%;
+  display: flex;
+  justify-content: center;
 }
 
 .vccUrlField {
