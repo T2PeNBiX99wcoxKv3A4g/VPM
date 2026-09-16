@@ -1,5 +1,3 @@
-import { webLightTheme, webDarkTheme } from 'https://esm.sh/@fluentui/tokens';
-
 const LISTING_URL = "{{ listingInfo.Url }}";
 
 const PACKAGES = {
@@ -46,15 +44,6 @@ const getPreferredTheme = () => {
 const applyTheme = (themeName) => {
   const isLight = themeName === 'light';
   document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
-
-  const themeTokens = isLight ? webLightTheme : webDarkTheme;
-  if (window.Fluent?.setTheme) {
-    window.Fluent.setTheme(themeTokens);
-  } else if (themeTokens) {
-    for (const [key, value] of Object.entries(themeTokens)) {
-      document.documentElement.style.setProperty(`--${key}`, value);
-    }
-  }
 };
 
 const toggleTheme = () => {
