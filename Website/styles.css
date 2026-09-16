@@ -92,6 +92,10 @@
    Base & Reset Styles
    ========================================================================== */
 
+[hidden] {
+  display: none !important;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -643,6 +647,10 @@ body {
   transition: all var(--transition-fast);
 }
 
+.search-clear-btn[hidden] {
+  display: none !important;
+}
+
 .search-clear-btn:hover {
   color: var(--text-primary);
   background: var(--bg-card-hover);
@@ -683,11 +691,16 @@ body {
 }
 
 fluent-data-grid-row.package-card-row {
-  display: block !important;
+  display: block;
   width: 100%;
   border: none !important;
   padding: 0 !important;
   background: transparent !important;
+}
+
+fluent-data-grid-row.package-card-row[hidden],
+fluent-data-grid-row.package-card-row.is-hidden {
+  display: none !important;
 }
 
 fluent-data-grid-cell.package-cell {
@@ -869,6 +882,10 @@ fluent-data-grid-cell.package-cell {
   border: 1px dashed var(--border-color);
   border-radius: var(--radius-lg);
   margin-top: 1rem;
+}
+
+.empty-state[hidden] {
+  display: none !important;
 }
 
 .empty-icon {

@@ -204,13 +204,14 @@ const fallbackCopy = (text, successMsg) => {
   const resetSearchBtn = document.getElementById('resetSearchBtn');
 
   const getPackageRows = () => {
-    if (!packageGrid) return [];
-    return Array.from(packageGrid.querySelectorAll('fluent-data-grid-row:not([row-type="header"]), .package-card-row'));
+    return Array.from(document.querySelectorAll('.package-card-row'));
   };
 
   const updatePackageCount = (visibleCount, totalCount) => {
     if (!packageCountBadge) return;
-    if (visibleCount === totalCount) {
+    if (totalCount === 0) {
+      packageCountBadge.textContent = '0 packages';
+    } else if (visibleCount === totalCount) {
       packageCountBadge.textContent = `${totalCount} ${totalCount === 1 ? 'package' : 'packages'}`;
     } else {
       packageCountBadge.textContent = `${visibleCount} of ${totalCount} packages`;
@@ -229,21 +230,30 @@ const fallbackCopy = (text, successMsg) => {
     rows.forEach(row => {
       if (!term) {
         row.style.display = '';
+        row.removeAttribute('hidden');
+        row.classList.remove('is-hidden');
+        row.hidden = false;
         visibleCount++;
         return;
       }
 
-      const pkgName = (row.dataset?.packageName || '').toLowerCase();
-      const pkgId = (row.dataset?.packageId || '').toLowerCase();
-      const pkgDesc = (row.dataset?.packageDesc || '').toLowerCase();
-      const pkgType = (row.dataset?.packageType || '').toLowerCase();
+      const pkgName = (row.dataset?.packageName || row.querySelector('.pkg-display-name')?.textContent || '').toLowerCase();
+      const pkgId = (row.dataset?.packageId || row.querySelector('.pkg-id-text')?.textContent || '').toLowerCase();
+      const pkgDesc = (row.dataset?.packageDesc || row.querySelector('.pkg-description')?.textContent || '').toLowerCase();
+      const pkgType = (row.dataset?.packageType || row.querySelector('.badge-type')?.textContent || '').toLowerCase();
 
       const matched = pkgName.includes(term) || pkgId.includes(term) || pkgDesc.includes(term) || pkgType.includes(term);
       if (matched) {
         row.style.display = '';
+        row.removeAttribute('hidden');
+        row.classList.remove('is-hidden');
+        row.hidden = false;
         visibleCount++;
       } else {
         row.style.display = 'none';
+        row.setAttribute('hidden', '');
+        row.classList.add('is-hidden');
+        row.hidden = true;
       }
     });
 
