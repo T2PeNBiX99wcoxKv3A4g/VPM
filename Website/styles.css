@@ -115,18 +115,61 @@ fluent-data-grid-cell {
   max-width: 90%;
 }
 
-.searchBlock .root {
-  width: 100%;
+fluent-text-input {
+  display: inline-flex;
 }
 
 #searchInput {
   width: 100%;
 }
 
-.vccUrlField {
-  min-width: 450px;
+.addToVccBlock {
   max-width: 90%;
-  flex-grow:1;
+  width: 100%;
+}
+
+.vccUrlField {
+  min-width: 280px;
+  flex-grow: 1;
+}
+
+fluent-button svg {
+  fill: currentColor;
+}
+
+.icon-button,
+.rowPackageInfoButton,
+.rowMenuButton,
+#urlBarHelp,
+#packageInfoListingHelp,
+#packageInfoModalClose,
+#addListingToVccHelpClose {
+  min-width: 32px !important;
+  max-width: 32px !important;
+  width: 32px !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: var(--borderRadiusMedium, 4px);
+  box-sizing: border-box;
+}
+
+fluent-button[appearance="primary"],
+fluent-button[appearance="accent"],
+.rowAddToVccButton,
+#vccAddRepoButton {
+  background-color: var(--colorBrandBackground, #0078d4);
+  color: var(--colorNeutralForegroundOnBrand, #ffffff);
+}
+
+fluent-button[appearance="primary"]:hover,
+fluent-button[appearance="accent"]:hover,
+.rowAddToVccButton:hover,
+#vccAddRepoButton:hover {
+  background-color: var(--colorBrandBackgroundHover, #106ebe);
 }
 
 #addListingToVccHelp {
@@ -137,11 +180,19 @@ fluent-data-grid-cell {
   z-index: 10;
 }
 
+fluent-dialog[hidden] {
+  display: none !important;
+}
+
 #rowMoreMenu {
   top: 0;
   left: 0;
   position: absolute;
-  z-index: 10;
+  z-index: 100;
+}
+
+#rowMoreMenu[hidden] {
+  display: none !important;
 }
 
 #rowMoreMenu a {

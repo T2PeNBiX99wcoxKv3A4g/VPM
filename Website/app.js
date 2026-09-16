@@ -43,10 +43,10 @@ const setTheme = () => {
 
 const showDialog = (dialog) => {
   if (!dialog) return;
+  dialog.removeAttribute('hidden');
+  dialog.hidden = false;
   if (typeof dialog.show === 'function') {
     dialog.show();
-  } else {
-    dialog.hidden = false;
   }
 };
 
@@ -54,24 +54,26 @@ const hideDialog = (dialog) => {
   if (!dialog) return;
   if (typeof dialog.hide === 'function') {
     dialog.hide();
-  } else {
-    dialog.hidden = true;
   }
+  dialog.setAttribute('hidden', '');
+  dialog.hidden = true;
 };
 
 const copyToClipboard = (inputElement, buttonElement) => {
   if (!inputElement) return;
-  const value = inputElement.value || inputElement.getAttribute('value') || '';
-  if (typeof inputElement.select === 'function') {
+  const innerInput = inputElement.shadowRoot?.querySelector('input') || inputElement;
+  const value = inputElement.value || innerInput.value || inputElement.getAttribute('value') || '';
+  if (typeof innerInput.select === 'function') {
     try {
-      inputElement.select();
+      innerInput.select();
     } catch (_) {}
   }
   navigator.clipboard.writeText(value);
   if (buttonElement) {
-    buttonElement.appearance = 'accent';
+    const originalAppearance = buttonElement.getAttribute('appearance') || 'outline';
+    buttonElement.setAttribute('appearance', 'primary');
     setTimeout(() => {
-      buttonElement.appearance = 'neutral';
+      buttonElement.setAttribute('appearance', originalAppearance);
     }, 1000);
   }
 };
@@ -88,8 +90,9 @@ const copyToClipboard = (inputElement, buttonElement) => {
   // Search input filtering for package rows
   const searchInput = document.getElementById('searchInput');
   if (searchInput && packageGrid) {
-    searchInput.addEventListener('input', (event) => {
-      const value = (event.target?.value || '').trim().toLowerCase();
+    const filterHandler = (event) => {
+      const target = event?.target;
+      const value = (target?.value || target?.currentValue || searchInput.value || '').trim().toLowerCase();
       const items = packageGrid.querySelectorAll('fluent-data-grid-row:not([row-type="header"])');
       items.forEach(item => {
         if (value === '') {
@@ -104,7 +107,9 @@ const copyToClipboard = (inputElement, buttonElement) => {
           item.style.display = 'none';
         }
       });
-    });
+    };
+    searchInput.addEventListener('input', filterHandler);
+    searchInput.addEventListener('change', filterHandler);
   }
 
   // Help dialog handlers
@@ -172,6 +177,7 @@ const copyToClipboard = (inputElement, buttonElement) => {
     if (rowMoreMenu && !rowMoreMenu.contains(e.target)) {
       document.removeEventListener('click', hideRowMoreMenu);
       rowMoreMenu.hidden = true;
+      rowMoreMenu.setAttribute('hidden', '');
     }
   };
 
@@ -184,8 +190,9 @@ const copyToClipboard = (inputElement, buttonElement) => {
 
       if (rowMoreMenu) {
         const rect = targetButton.getBoundingClientRect();
-        rowMoreMenu.style.top = `${rect.bottom + window.scrollY}px`;
-        rowMoreMenu.style.left = `${rect.right + window.scrollX - 140}px`;
+        rowMoreMenu.style.top = `${rect.bottom + window.scrollY + 4}px`;
+        rowMoreMenu.style.left = `${rect.right + window.scrollX - 160}px`;
+        rowMoreMenu.removeAttribute('hidden');
         rowMoreMenu.hidden = false;
 
         setTimeout(() => {
@@ -197,12 +204,14 @@ const copyToClipboard = (inputElement, buttonElement) => {
 
   const rowMoreMenuDownload = document.getElementById('rowMoreMenuDownload');
   if (rowMoreMenuDownload) {
-    rowMoreMenuDownload.addEventListener('click', () => {
+    rowMoreMenuDownload.addEventListener('click', (e) => {
+      e.stopPropagation();
       if (currentDownloadUrl) {
         window.open(currentDownloadUrl, '_blank');
       }
       if (rowMoreMenu) {
         rowMoreMenu.hidden = true;
+        rowMoreMenu.setAttribute('hidden', '');
       }
       document.removeEventListener('click', hideRowMoreMenu);
     });
@@ -218,21 +227,16 @@ const copyToClipboard = (inputElement, buttonElement) => {
     });
   }
 
-  const setupModalStyles = () => {
-    if (!packageInfoModal) return;
-    const modalControl = packageInfoModal.shadowRoot?.querySelector('.control') || packageInfoModal.shadowRoot?.querySelector('dialog');
-    if (modalControl) {
-      modalControl.style.maxHeight = '90%';
-      modalControl.style.transition = 'height 0.2s ease-in-out';
-      modalControl.style.overflowY = 'auto';
-    }
-  };
-
-  if (customElements?.whenDefined) {
-    customElements.whenDefined('fluent-dialog').then(setupModalStyles).catch(() => {});
-  } else {
-    setupModalStyles();
-  }
+  // Manage dialog toggle event for light dismissal
+  [addListingToVccHelp, packageInfoModal].forEach(dialog => {
+    if (!dialog) return;
+    dialog.addEventListener('toggle', (e) => {
+      if (e.newState === 'closed') {
+        dialog.setAttribute('hidden', '');
+        dialog.hidden = true;
+      }
+    });
+  });
 
   const packageInfoName = document.getElementById('packageInfoName');
   const packageInfoId = document.getElementById('packageInfoId');
@@ -299,17 +303,7 @@ const copyToClipboard = (inputElement, buttonElement) => {
       }
 
       if (packageInfoModal) {
-        setupModalStyles();
         showDialog(packageInfoModal);
-
-        setTimeout(() => {
-          const modalControl = packageInfoModal.shadowRoot?.querySelector('.control') || packageInfoModal.shadowRoot?.querySelector('dialog');
-          const contentCol = packageInfoModal.querySelector('.col');
-          if (modalControl && contentCol) {
-            const height = contentCol.clientHeight;
-            modalControl.style.setProperty('--dialog-height', `${height + 14}px`);
-          }
-        }, 1);
       }
     });
   });
