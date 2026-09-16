@@ -195,7 +195,6 @@ const fallbackCopy = (text, successMsg) => {
   });
 
   // 2. Package Count & Search Filter
-  const packageGrid = document.getElementById('packageGrid');
   const searchInput = document.getElementById('searchInput');
   const searchClearBtn = document.getElementById('searchClearBtn');
   const searchKbdTip = document.getElementById('searchKbdTip');
